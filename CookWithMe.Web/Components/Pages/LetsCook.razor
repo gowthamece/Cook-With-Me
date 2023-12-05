@@ -1,0 +1,65 @@
+﻿@page "/letscook"
+@using System.ComponentModel.DataAnnotations
+@rendermode InteractiveServer
+@inject OpenAIChatClient OpenAIClient
+@inject ILogger<Recipe> Logger
+<h3>LetsCook</h3>
+
+<EditForm method="post" OnValidSubmit="@Submit" EditContext="@editContext" FormName="starship-plain-form">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group m-3">
+        <label for="description">Enter ingredients list </label>
+        <InputText @bind-Value="Model!.Ingredients" />
+    </div>
+
+    <div class="form-group m-3">
+        <label>
+            Select one or more type:
+            <select @bind="Model.SelectedType" multiple>
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+            </select>
+        </label>
+    </div>
+   
+    <button type="submit" class="btn-success">Submit</button>
+</EditForm>
+<div>
+    <label>
+        @((MarkupString)Message)
+    </label>
+</div>
+
+@code {
+    private EditContext? editContext;
+    public string Message = string.Empty;
+    [SupplyParameterFromForm]
+    public Recipe? Model { get; set; }
+
+    private async void Submit()
+    {
+        //  Logger.LogInformation("Id = {Ingredients}", Model?.Ingredients);
+        var result=await OpenAIClient.GetRecipeAsync(Model);
+        Message = result;
+        StateHasChanged();
+    }
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+        editContext = new(Model);
+        //  editContext.SetFieldCssClassProvider(new CustomFieldClassProvider());
+    }
+    public class Recipe
+    {
+        [Required]
+        [StringLength(100, ErrorMessage = "Ingredients is too long.")]
+        public string? Ingredients { get; set; }
+        public string[] SelectedType { get; set; } = new string[] { "bf", "lu" };
+        public string Message{ get; set; }
+    }
+
+
+
+}
