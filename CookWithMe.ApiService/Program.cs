@@ -56,7 +56,7 @@ app.MapPost("/recipe", async (HttpRequest request) =>
 {
     var body = await request.ReadFromJsonAsync<Recipe>();
 
-    var key = builder.Configuration.GetSection("settings").GetSection("key");
+    var key = builder.Configuration.GetSection("settings").GetSection("key").Value;
     string endpoint = "https://gowopenai.openai.azure.com/";
     var client = new OpenAIClient(new Uri(endpoint), new AzureKeyCredential(key.ToString()));
 
